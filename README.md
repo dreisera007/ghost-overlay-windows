@@ -64,6 +64,11 @@ are made-up sample content. In this recording the workspace uses its compact lay
     Chats, Projects, Help), a toolbar, chat tabs, a ruler and a white page. Every menu item drives
     ChatGPT's own controls. Items whose control isn't available on the current page are greyed out.
   - **Native app (fallback):** the official ChatGPT Windows app, switched with one command.
+- **Click-to-rename.** Click the chat title in the workspace header to rename the conversation in
+  place: Enter saves, Escape cancels, clicking elsewhere saves a changed title. The real ChatGPT
+  conversation is renamed (through ChatGPT's own Rename dialog), so the new title shows everywhere,
+  also on your other devices. Works in ordinary and Project chats; temporary and not-yet-saved chats
+  can't be renamed.
 - **Responsive page.** "Fit page to window", Narrow, Standard and Wide page widths. Small overlays
   (for example 430 × 550) fold the menus into one button. Works in ordinary and Project chats.
 - **Optional start at sign-in.** The installer asks; if you say yes, it adds a per-user Startup
@@ -201,20 +206,28 @@ you attach. The workspace's buttons use ChatGPT's own controls, so those actions
 you'd clicked them in ChatGPT. The only link it opens itself is Help → ChatGPT Help Center, when you
 click it.
 
+**Renaming a chat.** When you rename a chat from the workspace title, the extension opens ChatGPT's own
+"Chat actions → Rename" dialog for the conversation in the address bar, enters your new title and
+presses Save; ChatGPT then saves it to your account as it would if you'd done it by hand. The dialog
+is kept out of sight while this happens. The workspace reports success only once ChatGPT shows the new
+title; otherwise it restores the real title or shows ChatGPT's dialog so you can finish there.
+
 **Permissions.** No Chrome API permissions are declared. Like any content script, it can see and
 change the chatgpt.com pages it's matched to; it switches the workspace on only in the standalone app
 window.
 
 **The controller** (`GhostOverlay.ahk`) only arranges one window and doesn't read page content.
 `GhostOverlay.log` (next to the controller) records window handles, window sizes, modes and
-saved-opacity changes.
+saved-opacity changes. For each saved opacity change it also notes how many Ctrl+Alt+Up/Down presses
+caused it, whether Ctrl and Alt were physically held, and the name of the program in front. It records
+no other keys and no text.
 
 **Transparency is not privacy.** Screen sharing, recordings and people near you can still see a
 translucent window. Hide it with `Ctrl+Alt+G`.
 
-> The README bundled inside the v2.0.4 installer still has the earlier, less precise wording
-> ("never reads … your conversations", "no permissions"). The extension's behavior is the same; this
-> section is the accurate description, and the next installer release will include it.
+> Installers before v2.1.0 contain an older copy of this README with less precise wording ("never
+> reads … your conversations", "no permissions"). The extension's behavior was the same; this section
+> is the accurate description.
 
 Found a vulnerability? Please follow [SECURITY.md](SECURITY.md).
 
@@ -228,6 +241,12 @@ Found a vulnerability? Please follow [SECURITY.md](SECURITY.md).
 - **The extension is loaded unpacked**, so Chrome shows its usual developer-mode notice.
 - **Chrome's thin title bar** follows your Chrome profile theme; a page can't recolour it.
 - **Native app minimum size** is about 547 × 684, so 430 × 550 is clamped in native mode.
+- **Projects menu lists no projects** (since a ChatGPT navigation change, also in v2.0.4). Use
+  Projects → All projects… to open ChatGPT's Projects page meanwhile. Renaming chats inside projects
+  isn't affected.
+- **Chat list freshness:** ChatGPT's own chat list in an open window may show a chat's older title
+  until that chat is opened or the page is refreshed (for example after renaming it on another
+  device). The open chat always shows its current title.
 - **Untested:** Windows 10, multiple monitors, a real sign-out/sign-in (startup was tested by
   launching the real Startup shortcut), and ChatGPT Classic in this release.
 

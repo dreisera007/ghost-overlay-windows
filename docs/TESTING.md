@@ -2,10 +2,28 @@
 
 Every automated test drives the real hotkeys and inspects the real windows. Test runs used only
 synthetic content: temporary chats, a dedicated test chat and a dedicated test Project. The checks
-read no conversation or project titles.
+read no titles of personal conversations or projects; only the test chats' own titles were checked,
+by exact name.
 
 Test machine: Windows 11 Home (build 26200) at 150 % display scaling, AutoHotkey 2.0.23,
 Google Chrome 155, ChatGPT Store app `OpenAI.Codex` 26.1021. One monitor.
+
+## Release 2.1.0 (click-to-rename, opacity diagnostics)
+
+| Test | Result |
+|---|---|
+| Rename via ChatGPT's own dialog against the real ChatGPT page: ordinary chat, Project chat (Project and its name unchanged), duplicate titles (only the chat with the right ID changes), new title persists on a fresh load | PASS |
+| Failure handling: open chat isn't the one being renamed; temporary chat; ChatGPT never confirms (its own dialog is shown) | PASS: never reports a rename that ChatGPT didn't confirm |
+| Real application, desktop and 430 × 550: hover pencil, click to edit with the title selected, Enter, Escape, click-outside (changed / unchanged), empty title refused, long title | PASS |
+| Typed title not overwritten by the 700 ms header refresh (3 s wait) | PASS |
+| Leaving the chat while typing cancels; temporary and unsaved chats refuse with an explanation | PASS |
+| Header, current tab and Chats menu agree after a rename, after switching chats and after a refresh | PASS |
+| A newer title set in ChatGPT itself shows as soon as ChatGPT displays it; confirmed-title rules (13 unit checks) | PASS |
+| Installer: 13 embedded files identical to the source; fresh install with safe defaults; upgrade from the published 2.0.4 installer keeping custom settings; uninstall leaves another copy's Startup shortcut alone | PASS |
+| Installed controller: five hotkeys, show/hide and focus return, reset keeps saved opacity, always-on-top, single instance, native fallback and back, `--startup` path, new opacity diagnostic line | 24/24 PASS |
+
+Known issue (not caused by 2.1.0): the Projects menu lists no projects since a ChatGPT navigation
+change.
 
 ## Release 2.0.4 (controller with exact window identity, extension 2.0.4)
 

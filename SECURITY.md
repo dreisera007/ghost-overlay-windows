@@ -36,7 +36,8 @@ What Ghost Overlay does:
   or Download as text, the displayed conversation. It reads the clipboard only on Edit → Paste. It
   stores only view preferences in chatgpt.com's `localStorage` (shared by that origin in the Chrome
   profile). It makes no network requests of its own; ChatGPT's own traffic to OpenAI continues as
-  normal.
+  normal. Renaming a chat from the workspace title uses ChatGPT's own Rename dialog for the open
+  conversation, so ChatGPT itself saves the new title.
 - The installer writes files to a per-user folder. It installs third-party software (AutoHotkey,
   the ChatGPT Store app) only through `winget` / the Microsoft Store, and only after you agree.
 

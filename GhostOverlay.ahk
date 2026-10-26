@@ -40,6 +40,7 @@ global geo := 0           ; last overlay geometry {x, y, w, h(DIP)}, written to 
 global busy := false
 global opacityDirty := false   ; an opacity change is waiting to be written
 global rescue := false    ; emergency reset in effect: shown at 100 % without touching the saved Opacity
+global keyBurst := 0      ; opacity-key diagnostics for the next "opacity saved" log line
 global atLogin := A_Args.Length && A_Args[1] = "--startup"   ; launched by the Startup shortcut
 
 if A_Args.Length && A_Args[1] = "--init-config" {   ; installer: write the default config only
@@ -521,6 +522,7 @@ AdjustOpacity(delta) {
     next := delta > 0 ? (S.Opacity // st + 1) * st : ((S.Opacity - 1) // st) * st
     S.Opacity := Clamp(next, S.MinOpacity, 100)
     global opacityDirty := true
+    NoteOpacityKey(delta)
     SetTimer SaveOpacity, -300   ; write once after the presses settle; never block a keypress on disk
     h := FindTarget()
     if h && (h = appliedTo || Adopt(h))
@@ -528,10 +530,35 @@ AdjustOpacity(delta) {
     Tip("Opacity " S.Opacity "%")
 }
 
+; Diagnostics for unexpected opacity changes, written with the next "opacity saved" line. Only these
+; hotkeys are counted (no other keys, no text): how many presses, whether Ctrl and Alt were physically
+; held (keys sent by software aren't; right Alt with left Ctrl is AltGr) and the program in front.
+NoteOpacityKey(delta) {
+    global keyBurst
+    if !IsSet(keyBurst) || !IsObject(keyBurst)
+        keyBurst := {n: 0, up: 0, down: 0, t0: A_TickCount, held: 0, mods: Map(), app: ""}
+    keyBurst.n++, (delta > 0 ? keyBurst.up++ : keyBurst.down++)
+    if (GetKeyState("Ctrl", "P") && GetKeyState("Alt", "P"))
+        keyBurst.held++
+    for m in ["LCtrl", "RCtrl", "LAlt", "RAlt"]
+        if GetKeyState(m, "P")
+            keyBurst.mods[m] := 1
+    try keyBurst.app := WinGetProcessName("A")
+}
+
 SaveOpacity() {
-    global opacityDirty := false
+    global opacityDirty := false, keyBurst
     IniWrite S.Opacity, CFG, "Overlay", "Opacity"
-    Log("opacity saved: " S.Opacity "% (Ctrl+Alt+Up/Down)")
+    d := ""
+    if IsSet(keyBurst) && IsObject(keyBurst) {
+        mods := ""
+        for m in keyBurst.mods
+            mods .= (mods = "" ? "" : "+") m
+        d := Format("; {} press(es): {} up, {} down, over {:.1f} s; Ctrl+Alt physically held for {}; held keys: {}; in front: {}"
+            , keyBurst.n, keyBurst.up, keyBurst.down, (A_TickCount - keyBurst.t0) / 1000, keyBurst.held, mods = "" ? "none" : mods, keyBurst.app || "-")
+        keyBurst := 0
+    }
+    Log("opacity saved: " S.Opacity "% (Ctrl+Alt+Up/Down" d ")")
 }
 
 ToggleTopmost() {

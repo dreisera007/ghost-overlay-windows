@@ -6,6 +6,35 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-10-26
+
+### Added
+
+- Click-to-rename: click the chat title in the Document Workspace header to rename the real ChatGPT
+  conversation. Enter saves, Escape cancels, clicking elsewhere saves a changed title, and empty titles
+  are refused. A pencil appears on hover. The rename goes through ChatGPT's own Rename dialog for the
+  conversation in the address bar (never chosen by title, so duplicate titles are safe). Success is only
+  reported once ChatGPT shows the new title; otherwise the real title comes back or ChatGPT's dialog is
+  shown. Works in ordinary and Project chats; disabled with an explanation in temporary and unsaved
+  chats; leaving the chat while typing cancels.
+- Header, chat tabs and the Chats menu show a confirmed new title at once, even while ChatGPT's own
+  chat list lags behind. A newer title shown by ChatGPT (renamed elsewhere) always takes precedence.
+- Opacity diagnostics: each "opacity saved" log line also records how many Ctrl+Alt+Up/Down presses
+  caused it, whether Ctrl and Alt were physically held (keys sent by software aren't; AltGr shows as
+  right Alt with left Ctrl), and the program in front. No other keys or text are recorded.
+
+### Changed
+
+- The periodic header refresh no longer overwrites the title while you type or while a rename saves.
+- Wording corrected in program files: the extension's manifest description, the header comment in
+  `docmode.js`, and the installer's message about the extension (no Chrome API permissions; runs only
+  on chatgpt.com).
+- `Build-Installer.ps1` takes `-OutFile` to write the installer to another folder.
+
+### Known issues
+
+- The Projects menu lists no projects since a ChatGPT navigation change (also in 2.0.4).
+
 ### Documentation
 
 - README: a Demo section with a real recording that uses made-up content, a social preview image, a
@@ -18,10 +47,8 @@ All notable changes to this project are documented here. The format follows
   preferences in chatgpt.com's `localStorage`, declares no Chrome API permissions, and makes no
   network requests of its own. The earlier wording ("never reads conversations", "no permissions",
   "permission-free") was imprecise. The extension's behavior did not change.
-- Still to update in the next release (program files, unchanged here): the manifest description
-  ("No permissions"), the header comment in `docmode.js` ("localStorage, this window only"), the
-  installer's extension message in `Build-Installer.ps1` ("no permissions"), and the README copy
-  bundled in the installer.
+- The program-file wording listed here for the next release (manifest description, `docmode.js`
+  header comment, installer message, bundled README) is corrected in 2.1.0.
 
 ## [2.0.4] - 2026-10-26
 
@@ -49,5 +76,6 @@ First public release.
   only the exact app identity Chrome derives from the configured start page and profile (long
   addresses included), and always prefers the window it used last.
 
-[Unreleased]: https://github.com/dreisera007/ghost-overlay-windows/compare/v2.0.4...HEAD
+[Unreleased]: https://github.com/dreisera007/ghost-overlay-windows/compare/v2.1.0...HEAD
+[2.1.0]: https://github.com/dreisera007/ghost-overlay-windows/compare/v2.0.4...v2.1.0
 [2.0.4]: https://github.com/dreisera007/ghost-overlay-windows/releases/tag/v2.0.4

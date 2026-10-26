@@ -1,6 +1,7 @@
 # Packs the current, tested project files into one self-contained installer:
 #   Install-ChatGPTGhostOverlay.cmd  (double-click to run; it is batch + PowerShell in one file)
 # Re-run this after changing any project file so the installer stays in sync.
+param([string]$OutFile = (Join-Path $PSScriptRoot 'Install-ChatGPTGhostOverlay.cmd'))   # where the installer is written
 $ErrorActionPreference = 'Stop'
 $files = 'GhostOverlay.ahk', 'Start-GhostOverlay.cmd', 'Stop-GhostOverlay.cmd', 'Switch-Mode.cmd', 'Install-Startup.ps1',
          'Uninstall.ps1', 'Test-GhostOverlay.ahk', 'Test-Startup.ahk', 'README.md', 'LICENSE',
@@ -192,7 +193,8 @@ if ((Select-String -Path $ini -Pattern '^Target=Document' -Quiet)) {
     Say '  3. Sign in to chatgpt.com in that Chrome profile if you are not already.'
     Say '  If you use several Chrome profiles, put the profile folder name (e.g. Profile 1) in'
     Say '  GhostOverlay.ini as DocProfile=... so the overlay opens in the right one.'
-    Say '  The extension has no permissions and only styles the overlay''s ChatGPT app window.'
+    Say '  The extension declares no Chrome API permissions. It runs only on chatgpt.com, styles only the'
+    Say '  overlay''s app window, and renames a chat only through ChatGPT''s own Rename dialog.'
     $chrome = Find-Chrome
     if ($chrome -and (Ask 'Open chrome://extensions now?' $false)) { Start-Process $chrome 'chrome://extensions' }
     Say 'To switch back to the native ChatGPT app at any time: Switch-Mode.cmd ChatGPT'
@@ -256,7 +258,8 @@ else { Say 'Startup at login: disabled' }
 Say "Files: $InstallDir   (README.md explains everything; Uninstall: run this installer with -Uninstall)"
 '@
 
-$out = Join-Path $PSScriptRoot 'Install-ChatGPTGhostOverlay.cmd'
+$out = $OutFile
+New-Item -ItemType Directory -Force -Path (Split-Path $out) | Out-Null
 # inject the embedded files right after the first "$ErrorActionPreference = 'Stop'" line of the body
 $anchor = "`$ErrorActionPreference = 'Stop'"
 $at = $body.IndexOf($anchor) + $anchor.Length

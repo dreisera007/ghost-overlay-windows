@@ -2,7 +2,8 @@
 // Runs only in the standalone app window (display-mode: standalone); ordinary tabs are untouched.
 // Every control drives a real ChatGPT control or a local browser action (print, find, download).
 // It reads the page only to display it to you; it stores nothing but your view preferences
-// (localStorage, this window only) and sends nothing anywhere.
+// (chatgpt.com localStorage, shared by that site's pages in this Chrome profile) and makes no network
+// requests of its own. Renaming a chat goes through ChatGPT's own Rename dialog.
 (() => {
   'use strict';
   if (!matchMedia('(display-mode: standalone)').matches) return;
@@ -67,6 +68,7 @@
     saveTemp: () => byLabel(/^Save chat$/),
     tempToggle: () => byLabel(/temporary chat$/i),
     share: () => { const h = header(); return h && $$('button', h).find(b => /^share\b/i.test(label(b) || b.textContent.trim())); },
+    chatActions: () => { const h = header(); return h && $$('button[aria-haspopup=menu]', h).find(b => label(b) === 'Chat actions'); },
     model: () => byLabel(/^Select ChatGPT model$/),
     tools: () => byLabel(/^Add files and more$/),
     dictate: () => byLabel(/^Dictate$/),
@@ -207,17 +209,34 @@
 
   // ---- chat history and projects (read from ChatGPT's own navigation panel)
   let chats = [], projects = [], harvesting = false, harvestTries = 0, lastHarvest = 0;
+  // ChatGPT's in-page chat list can lag behind a rename (it may come from an older cache). A title
+  // confirmed here only replaces names that list showed before the rename; once it shows the new name,
+  // or a name it never showed before (renamed in ChatGPT or on another device), ChatGPT's list wins.
+  // The open chat always shows its live page title.
+  const renamedTitles = new Map();   // conversation id -> { title, stale: names the list showed before }
+  const navSeen = new Map();         // conversation id -> names ChatGPT's list has shown in this window
+  const idOf = href => (href.match(/\/c\/([0-9a-f-]{36})(?:\/|$)/) || [])[1] || '';
+  function knownTitle(href, navTitle) {
+    const id = idOf(href);
+    if (!id) return navTitle;
+    const r = renamedTitles.get(id);
+    if (r && (navTitle === r.title || !r.stale.has(navTitle))) renamedTitles.delete(id);
+    if (!navSeen.has(id)) navSeen.set(id, new Set());
+    navSeen.get(id).add(navTitle);
+    if (id === convId() && !renaming && pageTitle() && pageTitle() !== 'ChatGPT') return pageTitle();
+    return renamedTitles.get(id)?.title || navTitle;
+  }
   function readNav() {
     const n = homeNav(); if (!n) return false;
     const links = $$('a[href^="/c/"]', n);
     const seen = new Set();
-    chats = links.map(a => ({ href: a.getAttribute('href'), title: (label(a) || a.textContent).trim() || 'Untitled chat', a }))
+    chats = links.map(a => ({ href: a.getAttribute('href'), title: knownTitle(a.getAttribute('href'), (label(a) || a.textContent).trim() || 'Untitled chat'), a }))
       .filter(c => !seen.has(c.href) && seen.add(c.href));
     projects = $$('button[aria-label^="New chat in "]', n).map(btn => {
       const name = label(btn).slice('New chat in '.length);
       let group = btn;
       while (group.parentElement && group.parentElement !== n && $$('button[aria-label^="New chat in "]', group.parentElement).length === 1) group = group.parentElement;
-      const items = $$('a[href*="/g/g-p-"]', group).map(a => ({ href: a.getAttribute('href'), title: (label(a) || a.textContent).trim() || 'Untitled chat' }));
+      const items = $$('a[href*="/g/g-p-"]', group).map(a => ({ href: a.getAttribute('href'), title: knownTitle(a.getAttribute('href'), (label(a) || a.textContent).trim() || 'Untitled chat') }));
       return { name, btn, items };
     });
     return links.length > 0 || projects.length > 0;
@@ -271,6 +290,7 @@
     tools: '<path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/>',
     model: '<path d="M12 3 4 7.5v9L12 21l8-4.5v-9z"/><path d="M4 7.5 12 12l8-4.5M12 12v9"/>',
     clock: '<circle cx="12" cy="12" r="8"/><path d="M12 8v4.5l3 2"/>',
+    pen: '<path d="M4.5 19.5 5.5 15 15.8 4.7a2 2 0 0 1 2.9 0l.6.6a2 2 0 0 1 0 2.9L9 18.5z"/><path d="m14 6.5 3.5 3.5"/>',
   };
   const icon = (name, size = 18) => `<svg viewBox="0 0 24 24" width="${size}" height="${size}" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[name] || ''}</svg>`;
   // Original app icon: a plain page in the Soft Light accent with two text lines.
@@ -406,7 +426,9 @@
     <div class="rowA">
       <span class="logo" title="ChatGPT Document Workspace">${APP_ICON}</span>
       <button class="menuBtn ib" data-act="allmenus" aria-label="Menus" aria-haspopup="menu">${icon('menu')}</button>
-      <div class="names"><span class="app">ChatGPT</span><span class="title" role="heading" aria-level="1"></span></div>
+      <div class="names"><span class="app">ChatGPT</span>
+        <span class="tline" tabindex="0"><span class="title" role="heading" aria-level="1"></span><span class="pen" aria-hidden="true">${icon('pen', 14)}</span></span>
+        <input class="tin" type="text" aria-label="Chat title" spellcheck="false" autocomplete="off" hidden></div>
       <span class="badge" hidden>Temporary</span>
       <span class="spacer"></span>
       <button class="abtn share" data-act="share" hidden>${icon('share', 16)}<span>Share</span></button>
@@ -596,12 +618,108 @@
   S('[data-act=share]').addEventListener('click', () => press(N.share()));
   S('.returnPill').addEventListener('click', () => { prefs.original = false; savePrefs(); });
 
+  // ---- rename the open chat from its title
+  // The new name is saved by ChatGPT itself: its "Chat actions > Rename" dialog for the conversation in
+  // the address bar (never one picked by title), filled in unseen. Success is only reported once ChatGPT
+  // shows the new title; if it doesn't confirm, its own dialog is shown or the real title comes back.
+  const convId = () => (location.pathname.match(/\/c\/([0-9a-f-]{36})(?:\/|$)/) || [])[1] || '';
+  const titleLine = S('.tline'), titleInput = S('.tin');
+  let editing = null, renaming = false;   // editing = { id, original } while the title field is open
+  const canRename = () => !!convId() && !isTemporary();
+  const pageTitle = () => document.title.trim();
+  const until = async (fn, ms) => { for (let t = 0; t < ms; t += 100) { const v = fn(); if (v) return v; await sleep(100); } return fn(); };
+  const setValue = (input, v) => {   // as typing would, so ChatGPT's form sees the change
+    Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(input, v);
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+  };
+  function beginRename() {
+    if (editing || renaming || prefs.original) return;
+    if (isTemporary()) return toast('Temporary chats can\'t be renamed: they aren\'t saved to your chat history.');
+    if (!convId()) return toast('This chat isn\'t saved yet. Send a message first, then rename it.');
+    editing = { id: convId(), original: docTitle() };
+    titleInput.value = editing.original;
+    S('.names').classList.add('editing'); titleLine.hidden = true; titleInput.hidden = false;
+    titleInput.focus(); titleInput.select();
+  }
+  // how: 'enter', 'blur' (clicked elsewhere) or 'cancel' (Escape, or the chat changed)
+  function endRename(how) {
+    if (!editing) return;
+    const { id, original } = editing, val = titleInput.value.replace(/\s+/g, ' ').trim();
+    if (how === 'enter' && !val) { toast('A chat title can\'t be empty.'); titleInput.focus(); return; }
+    editing = null;
+    titleInput.hidden = true; titleLine.hidden = false; S('.names').classList.remove('editing');
+    if (how === 'cancel' || !val || val === original) return;
+    if (convId() !== id) return toast('The chat changed while you were typing, so nothing was renamed.');
+    renameChat(id, val, original);
+  }
+  async function renameChat(id, val, original) {
+    renaming = true;
+    const te = S('.title');
+    te.textContent = val; te.title = 'Saving the new title…'; te.classList.add('pending');
+    const reveal = !prefs.header;
+    root.setAttribute('data-gd-renaming', '');   // ChatGPT's menu and dialog do the work unseen (docmode.css)
+    if (reveal) { root.setAttribute('data-gd-reveal-header', ''); await frame(); await sleep(150); }
+    let result = 'failed', field = null;
+    try {
+      if (convId() !== id || !press(N.chatActions())) throw 0;
+      const item = await until(() => $$('[role=menu] [role^=menuitem]').find(m => m.textContent.trim() === 'Rename'), 3000);
+      if (!item) throw 0;
+      item.click();
+      field = await until(() => $('[role=dialog] input[aria-label="Chat title"]'), 3000);
+      if (!field || convId() !== id) throw 0;   // the chat changed meanwhile: don't save anything
+      setValue(field, val);
+      const save = $$('button', field.form || field.closest('[role=dialog]')).find(b => b.textContent.trim() === 'Save');
+      if (!save || save.disabled) throw 0;
+      save.click();
+      // ChatGPT closes its dialog and retitles the page once the new name has been saved
+      if (await until(() => !field.isConnected && pageTitle() === val, 10000)) result = 'ok';
+      else if (field.isConnected) result = 'dialog';
+    } catch {}
+    if (result === 'failed') {
+      if (field && field.isConnected) $$('button', field.form || document).find(b => b.textContent.trim() === 'Cancel')?.click();
+      const menu = $('[role=menu]'); if (menu) menu.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+      await sleep(200);
+    }
+    root.removeAttribute('data-gd-renaming');
+    if (reveal) root.removeAttribute('data-gd-reveal-header');
+    if (result === 'ok') {
+      await sleep(1500);   // ChatGPT puts the old title back if the save is rejected
+      if (convId() === id && pageTitle() !== val) result = 'failed';
+    }
+    te.classList.remove('pending');
+    renaming = false;
+    if (result === 'ok') {
+      // tabs and menus follow at once, even if ChatGPT's own chat list hasn't caught up yet
+      renamedTitles.set(id, { title: val, stale: new Set([...(navSeen.get(id) || []), original]) });
+      for (const c of [...chats, ...projects.flatMap(p => p.items)]) if (c.href.endsWith('/c/' + id)) c.title = val;
+      toast('Chat renamed');
+    } else if (result === 'dialog') {
+      toast('ChatGPT hasn\'t confirmed the new title. Its Rename dialog is open: finish or cancel there.');
+    } else {
+      toast('Couldn\'t rename this chat. Its title is unchanged.');
+    }
+    rowD.dataset.sig = ''; tick();
+  }
+  titleLine.addEventListener('click', beginRename);
+  titleLine.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === 'F2') { e.preventDefault(); beginRename(); } });
+  titleInput.addEventListener('keydown', e => {
+    e.stopPropagation();
+    if (e.key === 'Enter') { e.preventDefault(); endRename('enter'); }
+    else if (e.key === 'Escape') { e.preventDefault(); endRename('cancel'); }
+  });
+  titleInput.addEventListener('blur', () => setTimeout(() => {
+    if (document.hasFocus()) endRename('blur');   // switching to another app keeps the edit open
+  }, 0));
+  addEventListener('popstate', () => { if (editing && convId() !== editing.id) endRename('cancel'); });
+
   // ---- chat tabs
   function renderTabs() {
     if (!prefs.tabs || isCompact() || prefs.original) return;
     readNav();
     const cur = currentHref();
-    const list = chats.slice(0, 12).map(c => ({ ...c, cur: c.href === cur }));
+    // the open chat's tab follows the live page title (a fresh rename shows before the chat list updates)
+    const live = !renaming && pageTitle() !== 'ChatGPT' ? pageTitle() : '';
+    const list = chats.slice(0, 12).map(c => ({ ...c, cur: c.href === cur, title: c.href === cur && live ? live : c.title }));
     if (!list.some(c => c.cur)) list.unshift({ href: cur, title: cur === '/' ? (isTemporary() ? 'Temporary chat' : 'New chat') : docTitle(), cur: true, local: true });
     const sig = list.map(c => c.href + c.title + c.cur).join('|');
     if (rowD.dataset.sig === sig && rowD.offsetWidth === +rowD.dataset.w) return;
@@ -762,7 +880,13 @@
     if (prefs.original) return;
     setPageWidth();
     const tt = docTitle(); const te = S('.title');
-    if (te.textContent !== tt) { te.textContent = tt; te.title = tt; }
+    if (editing && convId() !== editing.id) endRename('cancel');   // left the chat while typing
+    if (!editing && !renaming) {   // never overwrite the title while it is being typed or saved
+      if (te.textContent !== tt) te.textContent = tt;
+      const can = canRename(), tip = can ? tt + ' (click to rename)' : tt;
+      if (te.title !== tip) te.title = tip;
+      titleLine.classList.toggle('can', can);
+    }
     S('.badge').hidden = !isTemporary();
     S('[data-act=share]').hidden = !N.share();
     const m = N.model(); const ml = rowC.querySelector('.model .tl'); const mt = (m && m.innerText.trim().split(/\n/).pop().trim()) || 'Model';
@@ -802,6 +926,17 @@
   .names { display: flex; flex-direction: column; min-width: 0; line-height: 1.2; }
   .app { font-size: 11px; font-weight: 600; letter-spacing: .03em; color: var(--accent-ink); }
   .title { font-size: 16px; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  /* click-to-rename: same place and type as the title; a pencil appears on hover */
+  .names.editing { flex: 1 1 auto; max-width: 640px; }
+  .tline { display: flex; align-items: center; gap: 6px; min-width: 0; margin: 0 -4px; padding: 0 4px; border-radius: 4px; }
+  .tline.can { cursor: text; }
+  .tline.can:hover { background: var(--bar); }
+  .tline:focus-visible { outline: 2px solid var(--accent); outline-offset: -1px; }
+  .pen { display: inline-flex; flex: none; color: var(--muted); opacity: 0; transition: opacity .12s; }
+  .tline.can:hover .pen, .tline.can:focus-visible .pen { opacity: 1; }
+  .title.pending { color: var(--muted); }
+  .tin { display: block; width: calc(100% + 10px); min-width: 0; height: 21px; margin: 0 -5px; padding: 0 4px; font: 16px/1.2 var(--ui); color: var(--ink);
+    background: var(--paper); border: 1px solid var(--accent); border-radius: 4px; box-shadow: 0 0 0 2px var(--soft); outline: none; user-select: text; }
   .badge { flex: none; font-size: 11px; padding: 2px 8px; border-radius: 10px; background: var(--soft); color: var(--accent-ink); border: 0; }
   .spacer { flex: 1; }
   .abtn { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 12px; border-radius: 6px; border: 1px solid var(--line); background: var(--paper); font-size: 13px; white-space: nowrap; flex: none; }
@@ -848,6 +983,8 @@
   .shell.compact .menuBtn { display: inline-flex; width: 28px; height: 28px; }
   .shell.compact .app { display: none; }
   .shell.compact .title { font-size: 14px; }
+  .shell.compact .tin { font-size: 14px; height: 19px; }
+  .shell.compact .pen svg { width: 13px; height: 13px; }
   .shell.compact .abtn { height: 28px; padding: 0 8px; }
   .shell.compact .abtn span { display: none; }
   .shell.compact .rowC { height: 34px; margin: 0 8px 6px; }

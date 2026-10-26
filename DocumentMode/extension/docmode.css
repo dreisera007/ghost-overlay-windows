@@ -43,6 +43,12 @@ html[data-ghost-docmode]:not([data-gd-original]):not([data-gd-header]):not([data
   margin-top: 0 !important;
   height: 100% !important;
 }
+/* Renaming from the workspace title: ChatGPT's own Chat actions menu and Rename dialog do the saving
+   unseen, without moving the page (they are shown again if ChatGPT doesn't confirm the new name). */
+html[data-gd-renaming] header[data-app-shell-titlebar] { position: fixed !important; top: 0; left: 0; right: 0; opacity: 0 !important; pointer-events: none !important; }
+html[data-gd-renaming] [data-app-shell-thread-edge-divider] { visibility: hidden !important; }
+html[data-gd-renaming] [data-radix-popper-content-wrapper]:has([role=menu]),
+html[data-gd-renaming] :has(> [role=dialog] input[aria-label="Chat title"]) > * { opacity: 0 !important; }
 /* ChatGPT's icon rail is folded away (View > ChatGPT navigation rail shows it) */
 html[data-ghost-docmode]:not([data-gd-original]):not([data-gd-rail]):not([data-gd-reveal-rail]) [data-app-shell-frame] { --app-shell-navigation-rail-width: 0px !important; }
 html[data-ghost-docmode]:not([data-gd-original]):not([data-gd-rail]):not([data-gd-reveal-rail]) nav[aria-label="App navigation"] { display: none !important; }
