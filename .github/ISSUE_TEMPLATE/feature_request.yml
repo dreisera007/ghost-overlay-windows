@@ -1,0 +1,30 @@
+name: Feature request
+description: Suggest an improvement
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What would you like to do?
+      description: Describe the situation or workflow, not only the solution.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: Proposed behaviour
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Hotkeys / overlay window
+        - Document Workspace (layout, menus, toolbar)
+        - Installer / startup
+        - Documentation
+        - Other
+  - type: markdown
+    attributes:
+      value: |
+        Ghost Overlay won't read conversations, handle credentials, call the OpenAI API or intercept
+        traffic, so requests that need those can't be accepted.

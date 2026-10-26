@@ -1,0 +1,25 @@
+# Personal settings and runtime files (copy GhostOverlay.example.ini to start)
+GhostOverlay.ini
+GhostOverlay.ini.bak
+GhostOverlay.log
+*.log
+
+# Generated installer (attached to GitHub Releases instead)
+Install-ChatGPTGhostOverlay.cmd
+dist/
+
+# Local backups and private material: never commit
+/Releases/
+/references/
+*.bak
+*.zip
+*.har
+*.mhtml
+*.webarchive
+
+# Editor / OS
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini
+.DS_Store

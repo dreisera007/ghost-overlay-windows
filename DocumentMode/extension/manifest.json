@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "Ghost Overlay Document Mode",
+  "version": "2.0.4",
+  "description": "Local document-editor workspace for the ChatGPT app window only. No permissions; ordinary tabs are not changed.",
+  "content_scripts": [
+    {
+      "matches": ["https://chatgpt.com/*"],
+      "js": ["docmode.js"],
+      "css": ["docmode.css"],
+      "run_at": "document_start"
+    }
+  ]
+}

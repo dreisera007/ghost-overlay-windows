@@ -1,0 +1,176 @@
+/* Ghost Overlay Document Workspace - page styling for the ChatGPT app window.
+   Every rule is scoped to html[data-ghost-docmode], which docmode.js sets only in the
+   standalone app window, so ordinary browser tabs are never restyled.
+   html[data-gd-original] (View > Original ChatGPT layout) switches the restyle off.
+   Hooks are ChatGPT's own data-* attributes (its class names are generated and change). */
+
+html[data-ghost-docmode] {
+  /* Soft Light theme tokens */
+  --gd-desk: #F8FAFD;        /* main application background (also around the page) */
+  --gd-bar: #EDF2FA;         /* toolbar background, quiet fills */
+  --gd-paper: #FFFFFF;       /* document page */
+  --gd-edge: #DFE3EA;        /* borders and separators */
+  --gd-ink: #202124;         /* primary text */
+  --gd-muted: #5F6368;       /* secondary text */
+  --gd-icon: #444746;
+  --gd-accent: #4B77BE;
+  --gd-select: #E8F0FE;      /* subtle selection */
+  --gd-input: #FFFFFF;
+  --gd-tint: #F8FAFD;
+  --gd-ui-font: "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  --gd-page-font: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --gd-zoom: 1;
+  --gd-page-w: 816px;   /* set in pixels by docmode.js */
+  --gd-margin: clamp(28px, 6vw, 72px);
+  --gd-top: 0px;
+  color-scheme: light;
+}
+html[data-ghost-docmode][data-gd-serif] { --gd-page-font: Charter, "Bitstream Charter", Cambria, Georgia, serif; }
+html[data-ghost-docmode][data-gd-compact] { --gd-margin: 16px; }
+
+/* ---- make room for the workspace header: the whole app moves below it */
+html[data-ghost-docmode]:not([data-gd-original]) body { background: var(--gd-desk) !important; }
+html[data-ghost-docmode]:not([data-gd-original]) #root {
+  transform: translateY(var(--gd-top)) !important;
+  height: calc(100svh - var(--gd-top)) !important;
+  overflow: hidden !important;
+}
+html[data-ghost-docmode]:not([data-gd-original]) [data-app-shell-frame] { height: 100% !important; }
+
+/* ChatGPT's own title bar is replaced by the workspace header (View > ChatGPT header shows it) */
+html[data-ghost-docmode]:not([data-gd-original]):not([data-gd-header]):not([data-gd-reveal-header]) header[data-app-shell-titlebar] { display: none !important; }
+html[data-ghost-docmode]:not([data-gd-original]):not([data-gd-header]):not([data-gd-reveal-header]) [data-app-shell-thread-edge-divider] {
+  margin-top: 0 !important;
+  height: 100% !important;
+}
+/* ChatGPT's icon rail is folded away (View > ChatGPT navigation rail shows it) */
+html[data-ghost-docmode]:not([data-gd-original]):not([data-gd-rail]):not([data-gd-reveal-rail]) [data-app-shell-frame] { --app-shell-navigation-rail-width: 0px !important; }
+html[data-ghost-docmode]:not([data-gd-original]):not([data-gd-rail]):not([data-gd-reveal-rail]) nav[aria-label="App navigation"] { display: none !important; }
+/* ChatGPT's left panel (icon rail + sidebar) is folded away unless View > ChatGPT sidebar / navigation rail is on */
+html[data-ghost-docmode]:not([data-gd-original]):not([data-gd-sidebar]):not([data-gd-rail]):not([data-gd-reveal-rail]) aside[data-app-shell-left-panel-appearance] {
+  width: 0 !important; min-width: 0 !important; flex-basis: 0 !important; overflow: hidden !important; background: none !important;
+}
+/* while the workspace reads the chat list, ChatGPT's hover panel stays invisible */
+html[data-ghost-docmode][data-gd-harvest] nav[aria-label="Home"] { opacity: 0 !important; pointer-events: none !important; }
+
+/* ---- the desk and the page */
+html[data-ghost-docmode]:not([data-gd-original]) :is(main[data-app-shell-main-surface], [data-app-shell-frame], [data-app-shell-page-surface]) { background: var(--gd-desk) !important; }
+html[data-ghost-docmode]:not([data-gd-original]) [data-app-action-timeline-scroll] {
+  background: var(--gd-desk) !important;
+  --thread-content-responsive-max-width: var(--gd-page-w) !important;
+  padding-top: 22px !important;
+}
+html[data-ghost-docmode]:not([data-gd-original]) [data-thread-user-message-navigation-content] {
+  background: var(--gd-paper) !important;
+  box-shadow: 0 0 0 1px var(--gd-edge), 0 1px 2px rgba(60, 64, 67, .06) !important;
+  padding: calc(52px * var(--gd-zoom)) var(--gd-margin) 0 !important;
+  margin-bottom: 24px !important;
+  box-sizing: border-box !important;
+}
+/* the start page (no conversation yet) shows a blank page behind ChatGPT's composer */
+html[data-ghost-docmode]:not([data-gd-original]) [data-app-shell-focus-area=main]:has(form[data-composer-placement=home]) {
+  --gd-pw: var(--gd-page-w);
+  background:
+    linear-gradient(var(--gd-paper), var(--gd-paper)) 50% 22px / var(--gd-pw) 100% no-repeat,
+    linear-gradient(var(--gd-edge), var(--gd-edge)) 50% 21px / calc(var(--gd-pw) + 2px) 100% no-repeat,
+    var(--gd-desk) !important;
+}
+/* ChatGPT's own wrappers around the start-page composer (narrow layout) let the page show through */
+html[data-ghost-docmode]:not([data-gd-original]) [data-app-shell-focus-area=main] *:has(form[data-composer-placement=home]) { background: transparent !important; }
+html[data-ghost-docmode][data-gd-compact]:not([data-gd-original]) [data-app-action-timeline-scroll] { padding-top: 8px !important; }
+html[data-ghost-docmode][data-gd-compact]:not([data-gd-original]) [data-thread-user-message-navigation-content] { padding-top: 18px !important; margin-left: 6px !important; margin-right: 6px !important; }
+
+/* ---- document typography for answers */
+html[data-ghost-docmode]:not([data-gd-original]) [data-markdown-text-style] {
+  font-family: var(--gd-page-font) !important;
+  font-size: calc(14.5px * var(--gd-zoom)) !important;
+  line-height: 1.65 !important;
+  color: var(--gd-ink) !important;
+  letter-spacing: 0 !important;
+}
+html[data-ghost-docmode]:not([data-gd-original]) [data-markdown-text-style] :is(p, ul, ol, li, blockquote, span, strong, em, b, i, a, td, th):not(.katex, .katex *) {
+  font-family: inherit !important;
+  font-size: inherit !important;
+}
+html[data-ghost-docmode]:not([data-gd-original]) [data-markdown-text-style] p { margin-top: .45em !important; margin-bottom: .45em !important; }
+html[data-ghost-docmode]:not([data-gd-original]) [data-markdown-text-style] li { margin-top: .2em !important; margin-bottom: .2em !important; }
+html[data-ghost-docmode]:not([data-gd-original]) [data-markdown-text-style] li > p { margin: 0 !important; }
+html[data-ghost-docmode]:not([data-gd-original]) [data-markdown-text-style] h1 { font: 600 1.6em/1.25 var(--gd-page-font) !important; margin: .9em 0 .4em !important; }
+html[data-ghost-docmode]:not([data-gd-original]) [data-markdown-text-style] h2 { font: 600 1.32em/1.3 var(--gd-page-font) !important; margin: 1em 0 .35em !important; }
+html[data-ghost-docmode]:not([data-gd-original]) [data-markdown-text-style] h3 { font: 600 1.12em/1.35 var(--gd-page-font) !important; margin: .9em 0 .3em !important; }
+html[data-ghost-docmode]:not([data-gd-original]) [data-markdown-text-style] :is(h4, h5, h6) { font: 600 1em/1.4 var(--gd-page-font) !important; margin: .8em 0 .3em !important; }
+html[data-ghost-docmode]:not([data-gd-original]) [data-markdown-text-style] hr { border-color: var(--gd-edge) !important; }
+html[data-ghost-docmode]:not([data-gd-original]) [data-markdown-text-style] a { color: var(--gd-accent) !important; }
+html[data-ghost-docmode]:not([data-gd-original]) [data-markdown-text-style] table { font-size: .9em !important; border-collapse: collapse !important; }
+html[data-ghost-docmode]:not([data-gd-original]) [data-markdown-text-style] :is(th, td) { border: 1px solid var(--gd-edge) !important; padding: 4px 9px !important; }
+html[data-ghost-docmode]:not([data-gd-original]) [data-markdown-text-style] th { background: var(--gd-bar) !important; font-weight: 600 !important; }
+html[data-ghost-docmode]:not([data-gd-original]) [data-code-block] {
+  background: var(--gd-tint) !important;
+  border: 1px solid var(--gd-edge) !important;
+  border-radius: 4px !important;
+  font-size: calc(12.5px * var(--gd-zoom)) !important;
+}
+html[data-ghost-docmode]:not([data-gd-original]) [data-code-block] :is([data-editor-search-surface], [data-code-block-controls], [data-block-actions], button) { background: transparent !important; }
+html[data-ghost-docmode]:not([data-gd-original]) [data-markdown-text-style] :not(pre) > code { background: var(--gd-bar) !important; border-radius: 2px !important; font-size: .88em !important; }
+
+/* ---- your prompts become labelled prompt blocks inside the document */
+html[data-ghost-docmode]:not([data-gd-original]) *:has(> [data-user-message-bubble]) { justify-content: flex-start !important; align-items: stretch !important; position: relative !important; }
+/* the prompt's Copy / Edit buttons sit inside the prompt block's corner instead of adding a blank row */
+html[data-ghost-docmode]:not([data-gd-original]) [data-user-message-bubble] ~ * { position: absolute !important; top: 26px !important; right: 6px !important; margin: 0 !important; z-index: 1 !important; }
+html[data-ghost-docmode]:not([data-gd-original]) [data-user-message-bubble] {
+  display: block !important;
+  background: var(--gd-tint) !important;
+  color: var(--gd-ink) !important;
+  border: 0 !important;
+  border-left: 3px solid var(--gd-accent) !important;
+  border-radius: 0 4px 4px 0 !important;
+  padding: 7px 12px 8px !important;
+  margin: 18px 0 14px !important;
+  max-width: 100% !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  font: calc(13.5px * var(--gd-zoom))/1.55 var(--gd-ui-font) !important;
+  box-shadow: none !important;
+}
+html[data-ghost-docmode]:not([data-gd-original]):not([data-gd-compact]) [data-user-message-bubble] { padding-right: 84px !important; }
+html[data-ghost-docmode]:not([data-gd-original]) [data-user-message-bubble]::before {
+  content: "Prompt";
+  display: block;
+  font: 600 10px/1.5 var(--gd-ui-font);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--gd-accent);
+}
+html[data-ghost-docmode]:not([data-gd-original]) [data-user-message-bubble] * { font-size: inherit !important; line-height: inherit !important; }
+html[data-ghost-docmode]:not([data-gd-original]) [data-user-message-bubble] > svg { display: none !important; }
+
+/* ---- the composer sits at the foot of the page */
+html[data-ghost-docmode]:not([data-gd-original]) [data-thread-scroll-footer] [class*="background-"][class*="surface-"] { background: transparent !important; }
+/* behind the composer the page continues (text scrolls underneath it, never shows around it) */
+html[data-ghost-docmode]:not([data-gd-original]) [data-thread-scroll-footer] {
+  background:
+    linear-gradient(var(--gd-paper), var(--gd-paper)) 50% 0 / var(--gd-page-w) 100% no-repeat,
+    linear-gradient(var(--gd-edge), var(--gd-edge)) 50% 0 / calc(var(--gd-page-w) + 2px) 100% no-repeat !important;
+}
+html[data-ghost-docmode]:not([data-gd-original]) :is([data-composer-surface-variant], [data-composer-body]) {
+  background: var(--gd-input) !important;
+  border-radius: 6px !important;
+  box-shadow: 0 1px 2px rgba(60, 64, 67, .08), 0 2px 6px rgba(60, 64, 67, .05) !important;
+}
+html[data-ghost-docmode]:not([data-gd-original]) [data-composer-surface-variant] { border: 1px solid var(--gd-edge) !important; }
+html[data-ghost-docmode]:not([data-gd-original]) [data-composer-surface-variant] [data-composer-body] { border: 0 !important; box-shadow: none !important; }
+html[data-ghost-docmode]:not([data-gd-original]) [data-composer-markdown] { font: calc(14px * var(--gd-zoom))/1.5 var(--gd-ui-font) !important; }
+html[data-ghost-docmode]:not([data-gd-original]) :is([data-composer-surface-variant], [data-composer-body]) button { border-radius: 5px !important; box-shadow: none !important; }
+html[data-ghost-docmode]:not([data-gd-original]) form[data-chatgpt-composer] button[aria-label="Send"]:not(:disabled) { background: var(--gd-accent) !important; color: #fff !important; }
+html[data-ghost-docmode]:not([data-gd-original]) [data-markdown-copy=exclude] { font-size: 11px !important; color: var(--gd-muted) !important; }
+html[data-ghost-docmode]:not([data-gd-original]) * { scroll-behavior: auto !important; }
+
+/* ---- File > Print: only the document is printed */
+@media print {
+  html[data-ghost-docmode][data-gd-printing] body > :not(#gd-print) { display: none !important; }
+  html[data-ghost-docmode][data-gd-printing] body { background: #fff !important; }
+  #gd-print { display: block !important; font: 11pt/1.55 var(--gd-page-font); color: #000; }
+  #gd-print h1.gd-print-title { font: 600 18pt/1.3 var(--gd-page-font); margin: 0 0 12pt; }
+  #gd-print button, #gd-print svg:not(.katex svg), #gd-print [data-markdown-copy=exclude] { display: none !important; }
+  #gd-print [data-user-message-bubble] { border-left: 2pt solid #777; padding: 2pt 8pt; margin: 12pt 0 6pt; }
+}
