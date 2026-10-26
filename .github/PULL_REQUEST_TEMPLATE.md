@@ -12,5 +12,5 @@
 ## Checklist
 
 - [ ] No real conversation content, account details or personal paths in code, docs or screenshots
-- [ ] The extension still declares no permissions; nothing reads conversations or calls external services
+- [ ] The extension still declares no Chrome API permissions and makes no network requests; any new page read is documented in README → Privacy and security
 - [ ] `CHANGELOG.md` updated under **Unreleased**

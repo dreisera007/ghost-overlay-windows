@@ -7,13 +7,16 @@ Thanks for helping. Bug reports, small fixes, ChatGPT layout updates and documen
 - **Privacy first.** Never paste real conversation text, chat or project titles, account names,
   cookies, tokens or logs you haven't read into issues, pull requests or screenshots. Use a new chat
   with made-up content (or a Temporary chat) when you need to show something.
-- **No credentials, no APIs, no traffic interception.** Ghost Overlay only arranges windows and styles
-  the user's own chatgpt.com page locally. Contributions that read conversations, call the OpenAI API,
-  proxy or modify network traffic, or inject code into the ChatGPT desktop app won't be accepted.
+- **No credentials, no APIs, no traffic interception.** Ghost Overlay arranges windows and styles the
+  user's own chatgpt.com page locally. The extension may read the page only to display it in the
+  workspace (see README → Privacy and security), and every new read must be documented there.
+  Contributions that send page content anywhere, store conversations, call the OpenAI API, proxy or
+  modify network traffic, or inject code into the ChatGPT desktop app won't be accepted.
 - **No look-alike branding.** The Document Workspace uses an original design. Don't add logos,
   icons or assets from other products (for example Google Docs).
-- **Keep the extension permission-free.** `DocumentMode/extension/manifest.json` declares no
-  permissions and no background worker. Please keep it that way.
+- **Keep the extension's footprint minimal.** `DocumentMode/extension/manifest.json` declares no
+  Chrome API permissions and no background worker, and matches only `https://chatgpt.com/*`. Please
+  keep it that way.
 
 ## Project layout
 

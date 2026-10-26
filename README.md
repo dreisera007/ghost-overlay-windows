@@ -8,16 +8,34 @@ like a document. Dismiss it with the same hotkey and focus goes straight back to
 ![Windows 11](https://img.shields.io/badge/Windows-11-0078D4)
 ![AutoHotkey v2](https://img.shields.io/badge/AutoHotkey-v2-334455)
 
+<p align="center">
+  <a href="https://github.com/dreisera007/ghost-overlay-windows/releases/latest"><img src="https://img.shields.io/badge/Download-installer%20(Windows)-4B77BE?style=for-the-badge" alt="Download the installer"></a>
+</p>
+
 > **Independent project.** Ghost Overlay is not affiliated with, endorsed by, or sponsored by
 > OpenAI, Google or Anthropic. ChatGPT is a trademark of OpenAI. Chrome is a trademark of Google LLC.
 > Ghost Overlay does not modify ChatGPT or Chrome: it arranges their windows and styles your own
 > chatgpt.com page locally.
 
-![Document Workspace with a synthetic test conversation](docs/screenshots/workspace-desktop.png)
+![Ghost Overlay: a Windows workspace for ChatGPT, shown with Ctrl+Alt+G](docs/media/social-preview.png)
+
+> **Before you install:** the installer is an **unsigned script** (check its SHA256), the Chrome
+> extension must be **loaded once by hand** ("Load unpacked"), and starting at Windows sign-in is
+> **optional** (the installer asks). Details below.
+
+## Demo
+
+![Demo: Ctrl+Alt+G shows the overlay at 30 %, Ctrl+Alt+Up/Down change the opacity, the View menu, Ctrl+Alt+G hides it](docs/media/ghost-overlay-demo.gif)
+
+A 30-second recording of the real application. The conversation and the document behind the overlay
+are made-up sample content. In this recording the workspace uses its compact layout.
 
 <p align="center">
-  <img src="docs/screenshots/workspace-compact.png" alt="Compact overlay at 430 x 550" width="320">
-  <img src="docs/screenshots/view-menu.png" alt="View menu with page-width settings" width="420">
+  <img src="docs/screenshots/workspace-desktop.png" alt="Document Workspace with a synthetic test conversation" width="640">
+</p>
+<p align="center">
+  <img src="docs/screenshots/workspace-compact.png" alt="Compact overlay at 430 x 550" width="300">
+  <img src="docs/screenshots/view-menu.png" alt="View menu with page-width settings" width="400">
 </p>
 
 ## Download
@@ -48,10 +66,12 @@ like a document. Dismiss it with the same hotkey and focus goes straight back to
   - **Native app (fallback):** the official ChatGPT Windows app, switched with one command.
 - **Responsive page.** "Fit page to window", Narrow, Standard and Wide page widths. Small overlays
   (for example 430 × 550) fold the menus into one button. Works in ordinary and Project chats.
-- **Starts at sign-in** if you want it to (per-user Startup shortcut, asked during install). It
-  prepares the window hidden, so the first `Ctrl+Alt+G` is instant.
-- **Safe by design.** It uses only standard Windows window calls (move, resize, opacity, topmost,
-  show/hide) on one window. No API keys, no network calls of its own, no admin rights, no telemetry.
+- **Optional start at sign-in.** The installer asks; if you say yes, it adds a per-user Startup
+  shortcut that prepares the window hidden, so the first `Ctrl+Alt+G` is instant.
+- **No API key, no separate AI backend.** It works with your existing ChatGPT account and session in
+  Chrome. The controller uses only standard Windows window calls (move, resize, opacity, topmost,
+  show/hide) on one window. No admin rights and no telemetry. See
+  [Privacy and security](#privacy-and-security) for exactly what the extension reads.
 
 ## Requirements
 
@@ -85,9 +105,11 @@ Ghost Overlay never asks for, reads or stores credentials.
       profile's folder name in `GhostOverlay.ini` (for example `DocProfile=Profile 1`).
 3. Press `Ctrl+Alt+G`.
 
-The extension has **no permissions**. It acts only on chatgpt.com when the page runs as an app
-window (`display-mode: standalone`), never in your normal tabs. It stores only view preferences and
-sends nothing anywhere.
+The extension declares **no Chrome API permissions** (no `permissions` entry, no background worker).
+Its content script and stylesheet are matched to `https://chatgpt.com/*`, so they load on chatgpt.com
+pages in that Chrome profile. The Document Workspace switches on only when the page runs as a
+standalone app window (`display-mode: standalone`); in ordinary tabs it does nothing. What it reads
+and stores is described under [Privacy and security](#privacy-and-security).
 
 Installer options (from a terminal):
 
@@ -152,14 +174,47 @@ Switch-Mode.cmd Document    # Document Workspace (default)
 
 ## Privacy and security
 
-- Ghost Overlay never reads, copies or uploads your conversations, cookies, tokens or passwords.
-- It never calls the OpenAI API, proxies traffic or injects code into the ChatGPT desktop app.
-- The controller finds its window by the exact Windows app identity Chrome gives the chatgpt.com app
-  window. Ordinary Chrome windows and other profiles are never touched.
-- `GhostOverlay.log` (next to the controller) records only window handles, window sizes, modes and
-  saved-opacity changes, never page content.
-- **Transparency is not privacy.** Screen sharing, recordings and people near you can still see a
-  translucent window. Hide it with `Ctrl+Alt+G`.
+**Your account and session.** Ghost Overlay needs no OpenAI API key and runs no AI backend of its own.
+The Document Workspace is chatgpt.com in a Chrome app window, signed in with your existing ChatGPT
+session in your Chrome profile. Ghost Overlay never asks for, reads or stores passwords, cookies or
+tokens.
+
+**What the extension reads, locally in the page.** To build the workspace, the content script reads
+ChatGPT's own page in your browser:
+
+- ChatGPT's navigation: chat titles and links, project names and the chats inside them (for the chat
+  tabs and the Chats and Projects menus). To find this list it may briefly open ChatGPT's own
+  navigation panel in the background.
+- The current conversation title and the selected model name (for the header and toolbar).
+- The displayed conversation text, only when you use **Find**, **Word count**, **Print** or
+  **Download as text**.
+- Your clipboard, only when you choose **Edit → Paste**.
+
+**What it stores.** Only its view preferences (page width, zoom, toolbar, ruler and similar), in
+chatgpt.com's `localStorage`. That storage belongs to the chatgpt.com origin in your Chrome profile,
+so it's shared by all chatgpt.com pages there, not only the overlay window. Downloads are created
+locally in your browser and saved only where you choose.
+
+**What it sends.** The extension makes no network requests of its own and has no telemetry. ChatGPT
+itself keeps communicating with OpenAI as usual: sending prompts, loading chats and uploading files
+you attach. The workspace's buttons use ChatGPT's own controls, so those actions behave exactly as if
+you'd clicked them in ChatGPT. The only link it opens itself is Help → ChatGPT Help Center, when you
+click it.
+
+**Permissions.** No Chrome API permissions are declared. Like any content script, it can see and
+change the chatgpt.com pages it's matched to; it switches the workspace on only in the standalone app
+window.
+
+**The controller** (`GhostOverlay.ahk`) only arranges one window and doesn't read page content.
+`GhostOverlay.log` (next to the controller) records window handles, window sizes, modes and
+saved-opacity changes.
+
+**Transparency is not privacy.** Screen sharing, recordings and people near you can still see a
+translucent window. Hide it with `Ctrl+Alt+G`.
+
+> The README bundled inside the v2.0.4 installer still has the earlier, less precise wording
+> ("never reads … your conversations", "no permissions"). The extension's behavior is the same; this
+> section is the accurate description, and the next installer release will include it.
 
 Found a vulnerability? Please follow [SECURITY.md](SECURITY.md).
 

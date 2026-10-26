@@ -29,16 +29,21 @@ What Ghost Overlay does:
 - The controller calls standard Windows window functions (show/hide, move, resize, opacity,
   topmost) on **one** window. It identifies that window by its exact Windows app identity, process
   path and window class.
-- The Chrome extension declares **no permissions**, has no background worker, runs only on
-  `https://chatgpt.com/*` in an app window, and stores only view preferences in that site's
-  `localStorage`.
+- The Chrome extension declares **no Chrome API permissions** and has no background worker. Its
+  content script is matched to `https://chatgpt.com/*` and switches the workspace on only in the
+  standalone app window. It reads that page locally to display it: ChatGPT's chat and project
+  navigation, the conversation title and model name, and, only when you use Find, Word count, Print
+  or Download as text, the displayed conversation. It reads the clipboard only on Edit → Paste. It
+  stores only view preferences in chatgpt.com's `localStorage` (shared by that origin in the Chrome
+  profile). It makes no network requests of its own; ChatGPT's own traffic to OpenAI continues as
+  normal.
 - The installer writes files to a per-user folder. It installs third-party software (AutoHotkey,
   the ChatGPT Store app) only through `winget` / the Microsoft Store, and only after you agree.
 
 What it never does:
 
-- read, store or transmit conversations, credentials, cookies or tokens;
-- call the OpenAI API or any other network service of its own;
+- store or transmit conversations, or read credentials, cookies or tokens;
+- call the OpenAI API, run a separate AI backend, or contact any other network service of its own;
 - proxy or intercept traffic, or inject code into the ChatGPT desktop app;
 - add Run registry keys, scheduled tasks or services (startup uses one per-user Startup shortcut).
 
