@@ -1,0 +1,102 @@
+name: Installation report
+description: Tried installing Ghost Overlay? Tell us how it went, even if it only partly worked.
+title: "[Install report] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for testing Ghost Overlay! This takes about 3 minutes. Only the first question and the
+        privacy check are required; skip anything you're unsure about.
+
+        **Privacy:** please don't include personal chats, chat or project names, account names or
+        email addresses, passwords or other credentials, browser profile files, or screenshots that
+        show private content. If you add a screenshot, make sure only Ghost Overlay or the installer
+        is visible.
+  - type: dropdown
+    id: success
+    attributes:
+      label: Did the installation work?
+      options:
+        - "Yes: everything worked"
+        - "Partly: installed, but something didn't work"
+        - "No: I couldn't finish installing"
+        - "Not sure"
+    validations:
+      required: true
+  - type: checkboxes
+    id: confusing
+    attributes:
+      label: Which steps were confusing or difficult? (tick all that apply)
+      options:
+        - label: Downloading the installer (browser warning about the file)
+        - label: Windows SmartScreen / "unknown publisher" warning
+        - label: Installing AutoHotkey
+        - label: Running the installer (its questions or messages)
+        - label: "Loading the Chrome extension (chrome://extensions → Developer mode → Load unpacked)"
+        - label: Signing in to ChatGPT in Chrome
+        - label: The "start at Windows sign-in" question
+        - label: Something else (please describe below)
+        - label: Nothing was confusing
+  - type: textarea
+    id: details
+    attributes:
+      label: What happened at the confusing step?
+      description: A sentence or two is enough, for example "I didn't know which folder to choose in Load unpacked".
+  - type: dropdown
+    id: hotkey
+    attributes:
+      label: Did Ctrl+Alt+G show and hide the overlay?
+      options:
+        - "Yes"
+        - "Partly (for example it showed but didn't hide)"
+        - "No"
+        - "Didn't get that far"
+  - type: dropdown
+    id: opacity
+    attributes:
+      label: Did Ctrl+Alt+Up / Ctrl+Alt+Down change the transparency?
+      options:
+        - "Yes"
+        - "Partly"
+        - "No"
+        - "Didn't get that far"
+  - type: dropdown
+    id: time
+    attributes:
+      label: Roughly how long did installation take?
+      options:
+        - "Under 5 minutes"
+        - "5–10 minutes"
+        - "10–20 minutes"
+        - "More than 20 minutes"
+        - "I gave up"
+  - type: input
+    id: version
+    attributes:
+      label: Ghost Overlay version
+      description: The version on the release page you downloaded from.
+      value: "2.0.4"
+  - type: input
+    id: windows
+    attributes:
+      label: Windows version
+      description: "Press Win+R, type winver and press Enter. Copy the line like \"Version 24H2 (OS Build 26100.xxxx)\"."
+      placeholder: "Windows 11 24H2, build 26100"
+  - type: input
+    id: chrome
+    attributes:
+      label: Chrome version
+      description: Open chrome://settings/help in Chrome and copy the version number.
+      placeholder: "155.0.xxxx.xx"
+  - type: textarea
+    id: suggestions
+    attributes:
+      label: Suggestions (optional)
+      description: What would have made installing or using Ghost Overlay easier?
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Privacy check
+      options:
+        - label: This report contains no personal chats, chat or project names, account details, credentials or private screenshots.
+          required: true

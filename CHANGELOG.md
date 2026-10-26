@@ -10,6 +10,8 @@ All notable changes to this project are documented here. The format follows
 
 - README: a Demo section with a real recording that uses made-up content, a social preview image, a
   Download button, and a "Before you install" note.
+- New "Installation report" issue form for testers: what worked, which steps were confusing, the
+  hotkeys, and the time taken. Only the outcome and a privacy check are required.
 - Privacy wording corrected in README, SECURITY.md and CONTRIBUTING.md. The extension reads
   ChatGPT's page locally to display it: navigation, titles, the model name, the displayed
   conversation for Find/Word count/Print/Download, and the clipboard on Paste. It stores view
